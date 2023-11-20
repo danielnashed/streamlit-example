@@ -17,22 +17,59 @@ In the meantime, below is an example of what you can do with just a few lines of
 
 
 with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+    hours = 0
+    hours += st.number_input('Enter number of hours', step=1)                                
+    total_hours = 10000
+    rows = int(math.sqrt(total_hours))
+    cols = int(total_hours/rows)
+    st.metric(label="% to target", value=hours*100/total_hours) 
 
-    Point = namedtuple('Point', 'x y')
+    # Create a 2D grid of points
+    grid = []
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            point = (i, j)  # Each point is represented as a tuple (row, column)
+            row.append(point)
+        grid.append(row)
+
+    # Create data points for the entered number of hours
     data = []
+    count = 0
+    flag = False
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            if count != hours:
+                data_point = (i, j)
+                count += 1
+                row.append(data_point)
+            else:
+                flag = True
+                break
+        data.append(row) 
+        if flag:
+            break              
 
-    points_per_turn = total_points / num_turns
+    # Flatten the grid for Altair
+    flat_grid = [(i, j) for row in grid for (i, j) in row]
+    flat_data = [(j, i) for row in data for (i, j) in row]
 
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
+    # Create a DataFrame from the flattened grid
+    phantom = pd.DataFrame(flat_grid, columns=['x', 'y'])
+    real = pd.DataFrame(flat_data, columns=['x', 'y'])
+    
+    # Chart using Altair
+    chart = alt.Chart(pd.concat([phantom.assign(dataset='df1'), real.assign(dataset='df2')]), height=1000, width=1000).mark_circle(opacity=0.5).encode(
+    x=alt.X('x:Q', axis=alt.Axis(labels=False, ticks=False)),  # Hide x-axis labels and ticks
+    y=alt.Y('y:Q', axis=alt.Axis(labels=False, ticks=False)),  # Hide y-axis labels and ticks
+    color=alt.Color('dataset:N', scale=alt.Scale(range=['#0068c9', '#ff7f0e']))).configure_axis(
+    grid=False  # Hide gridlines  # Specify colors for each dataset
+).configure_legend(
+    title=None,  # Hide legend title
+    labelFontSize=0  # Hide legend labels
+)
 
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+    # Display the Altair chart using Streamlit
+    st.altair_chart(chart)  
+ 
