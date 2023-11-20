@@ -4,19 +4,9 @@ import math
 import pandas as pd
 import streamlit as st
 
-"""
-# Welcome to Streamlit!
-
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
-
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
-
-
-with st.echo(code_location='below'):
+# with st.echo(code_location='below'):
+def main():    
+    st.header('Road to 10,000 hours of AI', divider='gray')
     hours = 0
     hours += st.number_input('Enter number of hours', step=1)                                
     total_hours = 10000
@@ -60,7 +50,7 @@ with st.echo(code_location='below'):
     real = pd.DataFrame(flat_data, columns=['x', 'y'])
     
     # Chart using Altair
-    chart = alt.Chart(pd.concat([phantom.assign(dataset='df1'), real.assign(dataset='df2')]), height=1000, width=1000).mark_circle(opacity=0.5).encode(
+    chart = alt.Chart(pd.concat([phantom.assign(dataset='df1'), real.assign(dataset='df2')]), height=1000, width=2000).mark_circle(opacity=0.5).encode(
     x=alt.X('x:Q', axis=alt.Axis(labels=False, ticks=False)),  # Hide x-axis labels and ticks
     y=alt.Y('y:Q', axis=alt.Axis(labels=False, ticks=False)),  # Hide y-axis labels and ticks
     color=alt.Color('dataset:N', scale=alt.Scale(range=['#0068c9', '#ff7f0e']))).configure_axis(
@@ -73,3 +63,5 @@ with st.echo(code_location='below'):
     # Display the Altair chart using Streamlit
     st.altair_chart(chart)  
  
+if __name__ == "__main__":
+    main() 
