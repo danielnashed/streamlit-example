@@ -3,23 +3,44 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
+from sqlalchemy import inspect
 
 def main():    
+    conn = st.connection('10000_db', type='sql')
+    # Insert some data with conn.session.
+    with conn.session as s:
+        # Check if the table exists
+        inspector = inspect(s.bind)
+        if 'hours_table' not in inspector.get_table_names():
+            # Table doesn't exist, create it
+            s.execute('CREATE TABLE hours_table (hours int);')
+            if 'hours' not in st.session_state:
+                st.session_state.hours = 0
+        else:
+            # query table to get stored hours 
+            if 'hours' not in st.session_state:
+                result = conn.query('select * from hours_table')
+                st.session_state.hours = result['hours'].iloc[0]
+        # update input field and output field 
+        col1, col2 = st.columns([8, 1])
+        with col1:
+            # add statefulness to hours variable 
+            increment = st.number_input('Enter number of hours', step=1)  
+            if increment:
+                st.session_state.hours += increment                             
+        with col2:
+            total_hours = 10000
+            rows = int(math.sqrt(total_hours))
+            cols = int(total_hours/rows)
+            st.metric(label="% to target", value=st.session_state.hours*100/total_hours) 
+        # save data to database 
+        s.execute(
+                'INSERT INTO hours_table (hours) VALUES (:cum_hours);',
+                params={'cum_hours': st.session_state.hours}
+            )
+        s.commit()
     st.header('Road to 10,000 hours of AI', divider='gray')
-    col1, col2 = st.columns([8, 1])
-    with col1:
-        # add statefulness to hours variable 
-        if 'hours' not in st.session_state:
-            st.session_state.hours = 0
-        increment = st.number_input('Enter number of hours', step=1)  
-        if increment:
-            st.session_state.hours += increment                             
-    with col2:
-        total_hours = 10000
-        rows = int(math.sqrt(total_hours))
-        cols = int(total_hours/rows)
-        st.metric(label="% to target", value=st.session_state.hours*100/total_hours) 
-
+    
     # Create a 2D grid of points
     grid = []
     for i in range(rows):
