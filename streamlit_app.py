@@ -4,15 +4,21 @@ import math
 import pandas as pd
 import streamlit as st
 
-# with st.echo(code_location='below'):
 def main():    
     st.header('Road to 10,000 hours of AI', divider='gray')
-    hours = 0
-    hours += st.number_input('Enter number of hours', step=1)                                
-    total_hours = 10000
-    rows = int(math.sqrt(total_hours))
-    cols = int(total_hours/rows)
-    st.metric(label="% to target", value=hours*100/total_hours) 
+    col1, col2 = st.columns([8, 1])
+    with col1:
+        # add statefulness to hours variable 
+        if 'hours' not in st.session_state:
+            st.session_state.hours = 0
+        increment = st.number_input('Enter number of hours', step=1)  
+        if increment:
+            st.session_state.hours += increment                             
+    with col2:
+        total_hours = 10000
+        rows = int(math.sqrt(total_hours))
+        cols = int(total_hours/rows)
+        st.metric(label="% to target", value=st.session_state.hours*100/total_hours) 
 
     # Create a 2D grid of points
     grid = []
@@ -30,7 +36,7 @@ def main():
     for i in range(rows):
         row = []
         for j in range(cols):
-            if count != hours:
+            if count != st.session_state.hours:
                 data_point = (i, j)
                 count += 1
                 row.append(data_point)
