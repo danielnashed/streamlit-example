@@ -42,17 +42,20 @@ def main():
                 except (TypeError, ValueError):
                     st.session_state.hours = 0
         # update input field and output field 
-        col1, col2 = st.columns([8, 1])
+        col1, col2, col3 = st.columns([7, 1, 1])
         with col1:
             # add statefulness to hours variable 
-            increment = st.number_input('Enter number of hours', step=1)  
+            increment = st.number_input('Enter number of hours', value=None, placeholder="Type a number...", step=1)  
             if increment:
-                st.session_state.hours += increment                             
-        with col2:
+                st.session_state.hours += increment      
+        with col2:   
+            st.metric(label="accumulated hours", value=st.session_state.hours)                               
+        with col3:
             total_hours = 10000
             rows = int(math.sqrt(total_hours))
             cols = int(total_hours/rows)
-            st.metric(label="% to target", value=st.session_state.hours*100/total_hours) 
+            st.metric(label="% to target", value=st.session_state.hours*100/total_hours)
+
         # save data to database 
         s.execute(
                 'INSERT INTO hours_table (hours) VALUES (:cum_hours);',
